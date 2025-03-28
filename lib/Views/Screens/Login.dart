@@ -34,9 +34,9 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  
+
                   // const SizedBox(height: 10),
-                  
+
                   // App title and tagline
                   const Text(
                     "BirdLens",
@@ -48,36 +48,34 @@ class LoginScreen extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
-                  
+
                   // const SizedBox(height: 20),
                   const SizedBox(height: 15),
                   // Feature highlights
                   _buildFeatureRow(
-                    Icons.photo_camera_outlined, 
-                    "Nhận diện nhanh chóng",
-                    "Chỉ cần chụp ảnh để xác định loài chim"
-                  ),
+                      Icons.photo_camera_outlined,
+                      "Nhận diện nhanh chóng",
+                      "Chỉ cần chụp ảnh để xác định loài chim"),
                   const SizedBox(height: 15),
-                  _buildFeatureRow(
-                    Icons.explore_outlined, 
-                    "Khám phá đa dạng",
-                    "Tìm hiểu các loài chim tại Việt Nam"
-                  ),
+                  _buildFeatureRow(Icons.explore_outlined, "Khám phá đa dạng",
+                      "Tìm hiểu các loài chim tại Việt Nam"),
                   const SizedBox(height: 15),
                   // const SizedBox(height: 40),
-                  
+
                   // Social login buttons
-                  _buildSocialButton(Icons.facebook, "Đăng nhập với Facebook", Colors.blue),
+                  _buildSocialButton(
+                      Icons.facebook, "Đăng nhập với Facebook", Colors.blue),
                   const SizedBox(height: 15),
-                  _buildSocialButton(Icons.g_mobiledata, "Đăng nhập với Google", Colors.red),
-                  
+                  _buildSocialButton(
+                      Icons.g_mobiledata, "Đăng nhập với Google", Colors.red),
+
                   // Email signup option
                   const SizedBox(height: 10),
                 ],
               ),
-              
+
               const Spacer(flex: 1),
-              
+
               // Bottom section with terms
               const Padding(
                 padding: EdgeInsets.only(bottom: 20),
@@ -106,7 +104,7 @@ class LoginScreen extends StatelessWidget {
       label: Text(text, style: const TextStyle(color: Colors.white)),
     );
   }
-  
+
   Widget _buildFeatureRow(IconData icon, String title, String description) {
     return Row(
       children: [
