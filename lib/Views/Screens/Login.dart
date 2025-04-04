@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/Views/Screens/BirdDetail.dart';
 
 class LoginScreen extends StatelessWidget {
+  BuildContext get context => context;
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(context) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -64,10 +67,10 @@ class LoginScreen extends StatelessWidget {
 
                   // Social login buttons
                   _buildSocialButton(
-                      Icons.facebook, "Đăng nhập với Facebook", Colors.blue),
+                      context,Icons.facebook, "Đăng nhập với Facebook", Colors.blue),
                   const SizedBox(height: 15),
                   _buildSocialButton(
-                      Icons.g_mobiledata, "Đăng nhập với Google", Colors.red),
+                      context,Icons.g_mobiledata, "Đăng nhập với Google", Colors.red),
 
                   // Email signup option
                   const SizedBox(height: 10),
@@ -92,9 +95,14 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSocialButton(IconData icon, String text, Color color) {
+  Widget _buildSocialButton(BuildContext context,IconData icon, String text, Color color) {
     return ElevatedButton.icon(
-      onPressed: () {},
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => BirdDetailApp()),
+        );
+      },
       style: ElevatedButton.styleFrom(
         backgroundColor: color,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
