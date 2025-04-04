@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/Views/Screens/BirdDetail.dart';
+import 'package:flutter_app/Views/Screens/Discover.dart';
 import 'package:flutter_app/Views/Screens/Login.dart';
 
 void main() {
