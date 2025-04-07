@@ -1,3 +1,13 @@
+buildscript {
+    repositories {
+        google()  // Cần có google() để tải các plugin Android
+        mavenCentral()  // Tải các thư viện từ Maven Central
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.0.4'  // Đảm bảo sử dụng đúng phiên bản phù hợp
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.31'  // Kiểm tra nếu bạn sử dụng Kotlin
+    }
+}
 allprojects {
     repositories {
         google()
