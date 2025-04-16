@@ -71,7 +71,7 @@ flutter:
     - assets/Images/backgound/
     - assets/Images/logo/
     - assets/Images/LoginScreen/bird.png
-    - assets/model/labels.txt
+
     - assets/model/bird_classifier_mobilenetv2_final.tflite
 
 #    - assets/model/ssd_bird_classifier_model.tflite

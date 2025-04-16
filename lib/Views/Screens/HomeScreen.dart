@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/Views/Screens/BirdDetail.dart';
+import 'package:flutter_app/Views/Screens/Discover.dart';
+import 'package:flutter_app/Views/Screens/userScreen.dart';
 import 'dart:ui'; // Để sử dụng hiệu ứng BackdropFilter
 import 'package:flutter_app/Views/toolnav/BottomNavBar.dart'; // Giả sử đây là file có sẵn
 import 'package:flutter/services.dart'; // Để tùy chỉnh thanh trạng thái
@@ -297,6 +300,13 @@ class _BirdRecognitionUIState extends State<BirdRecognitionUI>
                               Icons.collections_bookmark,
                               Color(0xFF388E3C),
                               Color(0xFFC8E6C9),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => BirdDetailApp()),
+                                );
+                              },
                             ),
                             _buildFeatureCard(
                               context,
@@ -305,6 +315,13 @@ class _BirdRecognitionUIState extends State<BirdRecognitionUI>
                               Icons.star,
                               Color(0xFFFF8F00),
                               Color(0xFFFFE0B2),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => UserScreen()),
+                                );
+                              },
                             ),
                           ],
                         ),

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/Views/Screens/check_image.dart';
+import 'package:flutter_app/config/google_gemini_service.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'ai_screen.dart';
 
 class ImageUploadScreen extends StatefulWidget {
   const ImageUploadScreen({super.key});
@@ -14,21 +15,20 @@ class ImageUploadScreen extends StatefulWidget {
 
 class _ImageUploadScreenState extends State<ImageUploadScreen> {
   Uint8List? _imageBytes;
-  bool _isPredicting = false;
   String? _result;
   double? _confidence;
+  List<Map<String, String>> _conversationHistory = [];
+  final TextEditingController _customQueryController = TextEditingController();
+  bool _isLoadingResponse = false;
 
-  // URL của Flask server
-  static const String _serverUrl = 'http://127.0.0.1:5000/predict';
-
-  // Chọn ảnh (hỗ trợ cả web và mobile)
   Future<void> _pickImage(ImageSource source) async {
     final picker = ImagePicker();
     try {
       final pickedFile = await picker.pickImage(
         source: source,
-        maxWidth: 224,
-        maxHeight: 224,
+        // Không áp dụng giới hạn kích thước cho web
+        maxWidth: kIsWeb ? null : 224,
+        maxHeight: kIsWeb ? null : 224,
       );
       if (pickedFile != null) {
         final imageBytes = await pickedFile.readAsBytes();
@@ -36,6 +36,7 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
           _imageBytes = imageBytes;
           _result = null;
           _confidence = null;
+          _conversationHistory = [];
         });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -43,15 +44,14 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
         );
       }
     } catch (e) {
-      print('❌ Error picking image: $e');
+      print('❌ Lỗi khi chọn ảnh: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Lỗi khi chọn ảnh: $e')),
       );
     }
   }
 
-  // Gửi ảnh lên server
-  Future<void> _predict() async {
+  Future<void> _navigateToPredict() async {
     if (_imageBytes == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vui lòng chọn ảnh trước')),
@@ -59,48 +59,107 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
       return;
     }
 
-    setState(() => _isPredicting = true);
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PredictScreen(imageBytes: _imageBytes!),
+      ),
+    );
+
+    if (result != null && result is Map<String, dynamic>) {
+      setState(() {
+        _result = result['bird'] ?? 'Không xác định';
+        _confidence = result['confidence'] ?? 0.0;
+        _conversationHistory = [];
+      });
+    }
+  }
+
+  Future<void> _fetchBirdInfo() async {
+    setState(() {
+      _isLoadingResponse = true;
+    });
+
+    final history = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AIScreen(birdName: _result!),
+      ),
+    );
+
+    if (history != null && history is List<Map<String, String>>) {
+      setState(() {
+        _conversationHistory = history;
+        _isLoadingResponse = false;
+      });
+    } else {
+      setState(() {
+        _isLoadingResponse = false;
+      });
+    }
+  }
+
+  Future<void> _askNewQuestion() async {
+    if (_customQueryController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập câu hỏi')),
+      );
+      return;
+    }
+
+    final String query = _customQueryController.text;
+    _customQueryController.clear();
+
+    setState(() {
+      _isLoadingResponse = true;
+    });
 
     try {
-      // Tạo multipart request
-      var request = http.MultipartRequest('POST', Uri.parse(_serverUrl));
-      request.files.add(http.MultipartFile.fromBytes(
-        'image',
-        _imageBytes!,
-        filename: 'image.png',
-      ));
+      final geminiService = GoogleGeminiService();
 
-      // Gửi request và nhận phản hồi
-      print('Sending request to $_serverUrl...');
-      var response = await request.send().timeout(const Duration(seconds: 30));
-      print('Response status: ${response.statusCode}');
-
-      // Đọc phản hồi
-      var responseBody = await response.stream.bytesToString();
-      print('Response body: $responseBody');
-
-      if (response.statusCode == 200) {
-        var jsonResponse = jsonDecode(responseBody);
-        print('Parsed JSON: $jsonResponse');
-        setState(() {
-          _result = jsonResponse['bird'] ?? 'Không xác định';
-          String confidenceStr = jsonResponse['confidence']?.toString() ?? '0%';
-          _confidence =
-              double.tryParse(confidenceStr.replaceAll('%', '')) ?? 0.0;
-        });
-      } else {
-        var errorResponse = jsonDecode(responseBody);
-        throw Exception(
-            errorResponse['error'] ?? 'Lỗi không xác định từ server');
+      String prompt =
+          "Bạn là một chuyên gia về chim. Tôi đang hỏi về loài chim $_result. Dưới đây là lịch sử hội thoại:\n";
+      for (var entry in _conversationHistory) {
+        prompt += "Người dùng: ${entry['query']}\nAI: ${entry['response']}\n";
       }
+      prompt +=
+          "Người dùng: $query\nHãy trả lời bằng tiếng Việt, ngắn gọn nhưng đầy đủ thông tin.";
+
+      String aiResponse = await geminiService.chatWithGemini(prompt);
+      aiResponse = aiResponse.trim().replaceAll('\n', ' ').replaceAll('\r', '');
+
+      setState(() {
+        _conversationHistory.add({
+          'query': query,
+          'response': aiResponse,
+        });
+      });
     } catch (e) {
-      print('❌ Error during prediction: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: $e')),
-      );
+      print('❌ Lỗi khi đặt câu hỏi: $e');
+      setState(() {
+        _conversationHistory.add({
+          'query': query,
+          'response': "Lỗi khi lấy thông tin: $e",
+        });
+      });
     } finally {
-      setState(() => _isPredicting = false);
+      setState(() {
+        _isLoadingResponse = false;
+      });
     }
+  }
+
+  // Danh sách các câu hỏi có sẵn
+  final List<String> predefinedQueries = [
+    "Đặc điểm nhận dạng của loài chim này là gì?",
+    "Môi trường sống của loài chim này như thế nào?",
+    "Thói quen ăn uống của loài chim này ra sao?",
+  ];
+
+  // Hàm để sử dụng câu hỏi có sẵn
+  Future<void> _usePresetQuestion(String question) async {
+    _customQueryController.text = question;
+    await _askNewQuestion();
   }
 
   @override
@@ -110,74 +169,221 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
         title: const Text("Nhận diện chim"),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Hiển thị ảnh
-            if (_imageBytes != null)
-              Image.memory(
-                _imageBytes!,
-                height: 224,
-                width: 224,
-                fit: BoxFit.cover,
-              )
-            else
-              Container(
-                height: 224,
-                width: 224,
-                color: Colors.grey[300],
-                child: const Center(child: Text('Chưa có ảnh')),
+      body: Column(
+        children: [
+          Expanded(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 500),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      if (_imageBytes != null)
+                        Image.memory(
+                          _imageBytes!,
+                          height: 224,
+                          width: 224,
+                          fit: BoxFit.cover,
+                        )
+                      else
+                        Container(
+                          height: 224,
+                          width: 224,
+                          color: Colors.grey[300],
+                          child: const Center(child: Text('Chưa có ảnh')),
+                        ),
+                      const SizedBox(height: 10),
+                      Text(
+                        _result != null
+                            ? 'Loài: $_result\nĐộ tin cậy: ${_confidence!.toStringAsFixed(2)}%'
+                            : 'Chưa có kết quả',
+                        style: const TextStyle(fontSize: 18),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Nút "Biết thêm về loài này" chỉ hiển thị sau khi nhận diện
+                      if (_result != null && _result != 'Không xác định')
+                        ElevatedButton(
+                          onPressed: _fetchBirdInfo,
+                          child: const Text('Biết thêm về loài này'),
+                        ),
+
+                      const SizedBox(height: 20),
+
+                      // Hiển thị lịch sử hội thoại
+                      if (_conversationHistory.isNotEmpty)
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          padding: const EdgeInsets.all(10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Thông tin về loài chim $_result:",
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const Divider(),
+                              ...List.generate(
+                                _conversationHistory.length,
+                                (index) {
+                                  final entry = _conversationHistory[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 10),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Hỏi: ${entry['query']}",
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 5),
+                                        Text(
+                                          "Trả lời: ${entry['response']}",
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.black54,
+                                          ),
+                                          textAlign: TextAlign.justify,
+                                        ),
+                                        if (index <
+                                            _conversationHistory.length - 1)
+                                          const Divider(),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+
+                      const SizedBox(height: 20),
+
+                      // Giao diện nhập câu hỏi mới
+                      if (_conversationHistory.isNotEmpty)
+                        Column(
+                          children: [
+                            Text(
+                              "Đặt câu hỏi về loài chim",
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+
+                            // Các câu hỏi có sẵn
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              alignment: WrapAlignment.center,
+                              children: predefinedQueries
+                                  .map((query) => ElevatedButton(
+                                        onPressed: _isLoadingResponse
+                                            ? null
+                                            : () => _usePresetQuestion(query),
+                                        style: ElevatedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 6),
+                                        ),
+                                        child: Text(
+                                          query,
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                      ))
+                                  .toList(),
+                            ),
+
+                            const SizedBox(height: 15),
+
+                            // Ô nhập câu hỏi
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: _customQueryController,
+                                    decoration: const InputDecoration(
+                                      hintText: "Nhập câu hỏi của bạn",
+                                      border: OutlineInputBorder(),
+                                      contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 8),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                ElevatedButton(
+                                  onPressed: _isLoadingResponse
+                                      ? null
+                                      : _askNewQuestion,
+                                  child: const Text("Hỏi"),
+                                ),
+                              ],
+                            ),
+
+                            if (_isLoadingResponse)
+                              const Padding(
+                                padding: EdgeInsets.only(top: 15),
+                                child: CircularProgressIndicator(),
+                              ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
               ),
-            const SizedBox(height: 10),
-            // Hiển thị thông tin loài chim và độ tin cậy ngay dưới ảnh
-            Text(
-              _result != null
-                  ? 'Loài: $_result\nĐộ tin cậy: ${_confidence!.toStringAsFixed(2)}%'
-                  : 'Chưa có kết quả',
-              style: const TextStyle(fontSize: 18),
-              textAlign: TextAlign.center,
             ),
-            const Spacer(),
-            // Hiển thị nút tùy theo nền tảng
-            if (kIsWeb)
-              // Trên web: Chỉ hiển thị nút "Tải ảnh lên"
-              ElevatedButton.icon(
-                onPressed: () => _pickImage(ImageSource.gallery),
-                icon: const Icon(Icons.upload_file),
-                label: const Text('Tải ảnh lên'),
-              )
-            else
-              // Trên mobile: Hiển thị hai nút "Chọn ảnh" và "Chụp ảnh"
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
+          ),
+          Container(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (kIsWeb)
                   ElevatedButton.icon(
                     onPressed: () => _pickImage(ImageSource.gallery),
-                    icon: const Icon(Icons.photo),
-                    label: const Text('Chọn ảnh'),
+                    icon: const Icon(Icons.upload_file),
+                    label: const Text('Tải ảnh lên'),
+                  )
+                else
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: () => _pickImage(ImageSource.gallery),
+                        icon: const Icon(Icons.photo),
+                        label: const Text('Chọn ảnh'),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: () => _pickImage(ImageSource.camera),
+                        icon: const Icon(Icons.camera_alt),
+                        label: const Text('Chụp ảnh'),
+                      ),
+                    ],
                   ),
-                  ElevatedButton.icon(
-                    onPressed: () => _pickImage(ImageSource.camera),
-                    icon: const Icon(Icons.camera_alt),
-                    label: const Text('Chụp ảnh'),
-                  ),
-                ],
-              ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _isPredicting ? null : _predict,
-              child: _isPredicting
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Dự đoán loài chim'),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: _navigateToPredict,
+                  child: const Text('Dự đoán loài chim'),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

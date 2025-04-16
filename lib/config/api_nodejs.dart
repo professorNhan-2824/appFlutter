@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../model/user.dart';  // Import model User
+import '../model/user.dart'; // Import model User
 
 class ApiService {
-  static const String baseUrl = "https://apiflutter-cndd.onrender.com";  // Đổi thành URL backend của bạn
+  static const String baseUrl =
+      "https://apiflutter-cndd.onrender.com"; // Đổi thành URL backend của bạn
 
   // Hàm gọi API lấy danh sách user
   static Future<List<User>> getAllUsers() async {
@@ -23,23 +24,55 @@ class ApiService {
       throw Exception("Lỗi khi tải dữ liệu từ API");
     }
   }
-  static Future<Map<String, dynamic>> addUser(String name, String email) async{
+
+  static Future<Map<String, dynamic>> addUser(String name, String email) async {
     final url = Uri.parse('$baseUrl/adduser');
 
-    try{
+    try {
       //gửi request lên server
-      final response = await http.post(
-        url,
-        body: json.encode({"name": name, "email": email}),
-        headers: {"Content-Type": "application/json"}
-      );
+      final response = await http.post(url,
+          body: json.encode({"name": name, "email": email}),
+          headers: {"Content-Type": "application/json"});
       //kieerm tra xem response co thanh cong hay khong
-      if(response.statusCode == 200){
+      if (response.statusCode == 200) {
         return json.decode(response.body);
-      }else{
+      } else {
         return {"success": false, "message": "Lỗi từ server"};
       }
-    }catch(err){
+    } catch (err) {
+      return {"success": false, "message": "Lỗi: $err"};
+    }
+  }
+
+  static Future<Map<String, dynamic>> deleteUser(String id) async {
+    final url = Uri.parse('$baseUrl/deleteuser/$id');
+    try {
+      final response = await http.delete(url);
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        return {"success": false, "message": "Lỗi server khi xóa"};
+      }
+    } catch (err) {
+      return {"success": false, "message": "Lỗi: $err"};
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateUser(
+      String id, String name, String email) async {
+    final url = Uri.parse('$baseUrl/updateuser/$id');
+    try {
+      final response = await http.put(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({"name": name, "email": email}),
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        return {"success": false, "message": "Lỗi server khi cập nhật"};
+      }
+    } catch (err) {
       return {"success": false, "message": "Lỗi: $err"};
     }
   }
