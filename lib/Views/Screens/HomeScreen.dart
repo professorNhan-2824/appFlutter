@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/Views/Screens/BirdDetail.dart';
+import 'package:flutter_app/Views/Screens/BirdSearchScreen.dart';
 import 'package:flutter_app/Views/Screens/Discover.dart';
+import 'package:flutter_app/Views/Screens/Guide_screen.dart';
 import 'package:flutter_app/Views/Screens/userScreen.dart';
 import 'dart:ui'; // Để sử dụng hiệu ứng BackdropFilter
 import 'package:flutter_app/Views/toolnav/BottomNavBar.dart'; // Giả sử đây là file có sẵn
 import 'package:flutter/services.dart'; // Để tùy chỉnh thanh trạng thái
 import 'image_upload_screen.dart'; // Import màn hình tải ảnh mới
+import 'share_screen.dart'; // Import màn hình chia sẻ
 
 class BirdRecognitionUI extends StatefulWidget {
   @override
@@ -99,11 +102,11 @@ class _BirdRecognitionUIState extends State<BirdRecognitionUI>
                   ),
                   child: SafeArea(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(top: 12),
+                            padding: const EdgeInsets.only(top: 10),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -249,9 +252,7 @@ class _BirdRecognitionUIState extends State<BirdRecognitionUI>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(
-                            bottom:
-                                1), // Sửa lỗi typo từ 'custom' thành 'bottom'
+                        padding: const EdgeInsets.only(bottom: 1),
                         child: Text(
                           "Chức năng chính",
                           style: TextStyle(
@@ -276,6 +277,13 @@ class _BirdRecognitionUIState extends State<BirdRecognitionUI>
                               Icons.search,
                               Color(0xFFDA4167),
                               Color(0xFFFFD1DC),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => BirdSearchScreen()),
+                                );
+                              },
                             ),
                             _buildFeatureCard(
                               context,
@@ -304,22 +312,22 @@ class _BirdRecognitionUIState extends State<BirdRecognitionUI>
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => BirdDetailApp()),
+                                      builder: (context) => BirdListApp()),
                                 );
                               },
                             ),
                             _buildFeatureCard(
                               context,
-                              "Đánh Giá",
-                              "Đánh giá nhận xét trải nghiệm",
-                              Icons.star,
+                              "Chia Sẻ",
+                              "Chia sẻ để nhiều người biết đến",
+                              Icons.share,
                               Color(0xFFFF8F00),
                               Color(0xFFFFE0B2),
                               onTap: () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => UserScreen()),
+                                      builder: (context) => ShareScreen()),
                                 );
                               },
                             ),
@@ -337,10 +345,10 @@ class _BirdRecognitionUIState extends State<BirdRecognitionUI>
       bottomNavigationBar: BottomNavBar(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Navigator.push(
-          //   context,
-          //   MaterialPageRoute(builder: (context) => ImageUploadScreen()),
-          // );
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => ImageUploadScreen()),
+          );
         },
         backgroundColor: Color(0xFF0A2463),
         elevation: 8,
@@ -372,13 +380,23 @@ class _BirdRecognitionUIState extends State<BirdRecognitionUI>
 
   Widget _buildIconButton(IconData icon) {
     return Container(
-      padding: EdgeInsets.all(8),
+      padding: const EdgeInsets.all(0),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(9),
         border: Border.all(color: Colors.white24, width: 1),
       ),
-      child: Icon(icon, color: Colors.white, size: 22),
+      child: IconButton(
+        icon: Icon(icon, color: Colors.white, size: 27),
+        onPressed: () {
+          if (icon == Icons.info_outline) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const UserGuideScreen()),
+            );
+          }
+        },
+      ),
     );
   }
 
@@ -389,7 +407,7 @@ class _BirdRecognitionUIState extends State<BirdRecognitionUI>
     IconData icon,
     Color iconColor,
     Color bgColor, {
-    VoidCallback? onTap, // Thêm tham số onTap
+    VoidCallback? onTap,
   }) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),

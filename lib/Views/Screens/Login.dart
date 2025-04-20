@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/Views/Screens/BirdDetail.dart';
+import 'package:flutter_app/Views/Screens/HomeScreen.dart';
 
 class LoginScreen extends StatelessWidget {
   BuildContext get context => context;
@@ -66,11 +67,11 @@ class LoginScreen extends StatelessWidget {
                   // const SizedBox(height: 40),
 
                   // Social login buttons
-                  _buildSocialButton(
-                      context,Icons.facebook, "Đăng nhập với Facebook", Colors.blue),
+                  _buildSocialButton(context, Icons.facebook,
+                      "Đăng nhập với Facebook", Colors.blue),
                   const SizedBox(height: 15),
-                  _buildSocialButton(
-                      context,Icons.g_mobiledata, "Đăng nhập với Google", Colors.red),
+                  _buildSocialButton(context, Icons.g_mobiledata,
+                      "Đăng nhập với Google", Colors.red),
 
                   // Email signup option
                   const SizedBox(height: 10),
@@ -95,12 +96,13 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSocialButton(BuildContext context,IconData icon, String text, Color color) {
+  Widget _buildSocialButton(
+      BuildContext context, IconData icon, String text, Color color) {
     return ElevatedButton.icon(
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => BirdDetailApp()),
+          MaterialPageRoute(builder: (context) => BirdRecognitionUI()),
         );
       },
       style: ElevatedButton.styleFrom(
