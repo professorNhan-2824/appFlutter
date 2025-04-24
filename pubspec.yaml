@@ -33,6 +33,10 @@ dependencies:
   camera: ^0.10.5+9
   path_provider: ^2.1.2 #lưu ảnh
   path: ^1.8.3
+  image: ^4.2.0
+  image_cropper: ^9.1.0
+  image_picker: ^1.0.4
+  tflite_flutter: ^0.11.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -70,7 +74,7 @@ flutter:
     - assets/Images/backgound/
     - assets/Images/logo/
     - assets/Images/LoginScreen/bird.png
-#    - assets/model/ssd_bird_classifier_model.tflite
+    - assets/model/bird_classifier_mobilenetv2_final.tflite
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

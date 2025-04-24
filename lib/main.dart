@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/Views/Screens/Camera.dart';
+import 'Views/GetAPI.dart';
 import 'Views/Screens/HomeScreen.dart';
 
 void main() {
@@ -10,7 +12,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: BirdRecognitionUI(), // Gọi màn hình đăng nhập
+      home: BirdSearchScreen(), // Gọi màn hình đăng nhập
     );
   }
 }
+//thay doi moi

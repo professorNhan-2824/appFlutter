@@ -19,12 +19,12 @@ class BirdCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           child: Image.network(bird.imageUrl, width: 60, height: 60, fit: BoxFit.cover),
         ),
-        title: Text(bird.name, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        // title: Text(bird.name, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(bird.description, style: TextStyle(color: Colors.grey[700])),
-            Text(bird.info, style: TextStyle(color: Colors.grey[500])),
+            // Text(bird.info, style: TextStyle(color: Colors.grey[500])),
           ],
         ),
         trailing: Icon(Icons.arrow_forward_ios),

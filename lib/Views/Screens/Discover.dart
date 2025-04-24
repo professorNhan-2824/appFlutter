@@ -21,30 +21,30 @@ class BirdListScreen extends StatefulWidget {
 
 class _BirdListScreenState extends State<BirdListScreen> {
   final TextEditingController _searchController = TextEditingController();
-  List<Bird> birds = [
-    Bird("Ara macao", "Chim nhiệt đới", "12-14-0 (WLD)", "https://via.placeholder.com/150"),
-    Bird("Toucan", "Cư dân rừng nhiệt đới", "8-30 (WLD)", "https://via.placeholder.com/150"),
-    Bird("Robin", "Thuộc ăn hạt", "10-50 (WLD)", "https://via.placeholder.com/150"),
-    Bird("Diệc", "Thợ săn cá", "15-21 (WLD)", "https://via.placeholder.com/150"),
-  ];
+  // List<Bird> birds = [
+  //   Bird("Ara macao", "Chim nhiệt đới", "12-14-0 (WLD)", "https://via.placeholder.com/150"),
+  //   Bird("Toucan", "Cư dân rừng nhiệt đới", "8-30 (WLD)", "https://via.placeholder.com/150"),
+  //   Bird("Robin", "Thuộc ăn hạt", "10-50 (WLD)", "https://via.placeholder.com/150"),
+  //   Bird("Diệc", "Thợ săn cá", "15-21 (WLD)", "https://via.placeholder.com/150"),
+  // ];
 
   List<Bird> filteredBirds = [];
 
   @override
   void initState() {
     super.initState();
-    filteredBirds = birds;
+    // filteredBirds = birds;
   }
 
 
   //Hàm này tìm ký tưj từ tên các loài chimchim
-  void _filterBirds(String query) {
-    setState(() {
-      filteredBirds = birds
-          .where((bird) => bird.name.toLowerCase().contains(query.toLowerCase()))
-          .toList();
-    });
-  }
+  // void _filterBirds(String query) {
+  //   setState(() {
+  //     // filteredBirds = birds
+  //         .where((bird) => bird.name.toLowerCase().contains(query.toLowerCase()))
+  //         .toList();
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +71,7 @@ class _BirdListScreenState extends State<BirdListScreen> {
             SizedBox(height: 10),
             TextField(
               controller: _searchController,
-              onChanged: _filterBirds,//Hàm này sẽ được gọi mỗi khi người dùng nhập ký tự
+              // onChanged: _filterBirds,//Hàm này sẽ được gọi mỗi khi người dùng nhập ký tự
               decoration: InputDecoration(
                 hintText: "Tìm kiếm tên loài",
                 prefixIcon: Icon(Icons.search),
