@@ -37,7 +37,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   http: ^1.3.0
-  tflite_flutter: ^0.11.0
+  # tflite_flutter: ^0.11.0
   image: ^4.1.7
   google_fonts: ^6.2.1
   cached_network_image: ^3.3.1
@@ -47,7 +47,11 @@ dependencies:
 #  flutter_tflite: ^1.0.1
 #  tflite_flutter_helper_plus: ^0.0.1
 #  camera: ^0.10.6
- 
+  camera: ^0.10.5+9
+  path_provider: ^2.1.2 #lưu ảnh
+  path: ^1.8.3
+  image_cropper: ^9.1.0
+  permission_handler: ^12.0.0+1
 dev_dependencies:
   flutter_test:
     sdk: flutter

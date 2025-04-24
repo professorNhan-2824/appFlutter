@@ -3,7 +3,7 @@ import 'package:flutter_app/Views/Screens/BirdDetail.dart';
 import 'package:flutter_app/Views/Screens/BirdSearchScreen.dart';
 import 'package:flutter_app/Views/Screens/Discover.dart';
 import 'package:flutter_app/Views/Screens/Guide_screen.dart';
-import 'package:flutter_app/Views/Screens/userScreen.dart';
+
 import 'dart:ui'; // Để sử dụng hiệu ứng BackdropFilter
 import 'package:flutter_app/Views/toolnav/BottomNavBar.dart'; // Giả sử đây là file có sẵn
 import 'package:flutter/services.dart'; // Để tùy chỉnh thanh trạng thái

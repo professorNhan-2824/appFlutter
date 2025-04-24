@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/Views/Screens/HomeScreen.dart';
+import 'package:flutter_app/Views/Screens/image_upload_screen.dart';
 
 // Thêm các màn hình khác nếu cần như SettingsScreen
 
@@ -24,10 +25,11 @@ class _BottomNavBarState extends State<BottomNavBar> {
         );
         break;
       case 1:
-        // Ví dụ: Mở màn hình chụp ảnh (nếu có)
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   SnackBar(content: Text("Tính năng chụp ảnh đang được phát triển.")),
-        // );
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ImageUploadScreen()),
+        );
+
         break;
       case 2:
         // Ví dụ: Mở màn hình Cài đặt (nếu có)

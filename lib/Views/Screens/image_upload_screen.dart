@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/Views/Screens/check_image.dart';
+import 'package:flutter_app/Views/Screens/testAnh.dart';
 import 'package:flutter_app/config/google_gemini_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
@@ -26,18 +27,38 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
     try {
       final pickedFile = await picker.pickImage(
         source: source,
-        // Không áp dụng giới hạn kích thước cho web
-        maxWidth: kIsWeb ? null : 224,
-        maxHeight: kIsWeb ? null : 224,
+        maxWidth: kIsWeb ? null : 1080, // Tăng maxWidth để giữ chất lượng
+        maxHeight: kIsWeb ? null : 1080,
       );
       if (pickedFile != null) {
         final imageBytes = await pickedFile.readAsBytes();
-        setState(() {
-          _imageBytes = imageBytes;
-          _result = null;
-          _confidence = null;
-          _conversationHistory = [];
-        });
+        if (source == ImageSource.camera) {
+          // Khi chụp ảnh từ camera, chuyển đến màn hình cắt ảnh
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CropImageScreen(
+                imageBytes: imageBytes,
+                onCrop: (croppedBytes) {
+                  setState(() {
+                    _imageBytes = croppedBytes;
+                    _result = null;
+                    _confidence = null;
+                    _conversationHistory = [];
+                  });
+                },
+              ),
+            ),
+          );
+        } else {
+          // Khi chọn ảnh từ thư viện, lưu trực tiếp
+          setState(() {
+            _imageBytes = imageBytes;
+            _result = null;
+            _confidence = null;
+            _conversationHistory = [];
+          });
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Không có ảnh được chọn')),
