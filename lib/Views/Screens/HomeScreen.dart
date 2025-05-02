@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/Services/AuthService.dart';
 import 'package:flutter_app/Views/Screens/BirdDetail.dart';
 import 'package:flutter_app/Views/Screens/BirdSearchScreen.dart';
 import 'package:flutter_app/Views/Screens/Discover.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_app/Views/Screens/Guide_screen.dart';
 import 'dart:ui'; // Để sử dụng hiệu ứng BackdropFilter
 import 'package:flutter_app/Views/toolnav/BottomNavBar.dart'; // Giả sử đây là file có sẵn
 import 'package:flutter/services.dart'; // Để tùy chỉnh thanh trạng thái
+import 'package:flutter_app/model/user.dart';
 import 'image_upload_screen.dart'; // Import màn hình tải ảnh mới
 import 'share_screen.dart'; // Import màn hình chia sẻ
 
@@ -17,14 +19,35 @@ class BirdRecognitionUI extends StatefulWidget {
 
 class _BirdRecognitionUIState extends State<BirdRecognitionUI>
     with SingleTickerProviderStateMixin {
+  final _authService = AuthService();
+  User? _user;
+  bool _isLoading = true;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  Future<void> _loadUserData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final user = await _authService.getUserData();
+      setState(() {
+        _user = user;
+      });
+    } catch (e) {
+      // Hiển thị lỗi nếu cần
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-
+    _loadUserData();
     // Cấu hình animation
     _animationController = AnimationController(
       duration: Duration(milliseconds: 1200),
@@ -350,7 +373,7 @@ class _BirdRecognitionUIState extends State<BirdRecognitionUI>
             MaterialPageRoute(builder: (context) => ImageUploadScreen()),
           );
         },
-        backgroundColor:  const Color.fromRGBO(80, 199, 143, 1),
+        backgroundColor: const Color.fromRGBO(80, 199, 143, 1),
         elevation: 8,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Container(
@@ -360,12 +383,15 @@ class _BirdRecognitionUIState extends State<BirdRecognitionUI>
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [ const Color.fromRGBO(80, 199, 143, 1), Color(0xFF0A2463)],
+              colors: [
+                const Color.fromRGBO(80, 199, 143, 1),
+                Color(0xFF0A2463)
+              ],
             ),
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color:  const Color.fromRGBO(80, 199, 143, 1).withOpacity(0.3),
+                color: const Color.fromRGBO(80, 199, 143, 1).withOpacity(0.3),
                 blurRadius: 12,
                 offset: Offset(0, 4),
               ),

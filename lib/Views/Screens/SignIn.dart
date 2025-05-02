@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/Services/AuthService.dart';
 import 'package:flutter_app/Views/Screens/BirdDetail.dart';
 import 'package:flutter_app/Views/Screens/HomeScreen.dart';
 import 'package:flutter_app/Views/Screens/Login.dart';
@@ -15,9 +16,10 @@ class _SignInScreenState extends State<SignInScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-
+  final _authService = AuthService();
   String? _passwordError;
-
+  bool _isLoading = false;
+  String? _errorMessage;
   @override
   void dispose() {
     _emailController.dispose();
@@ -45,6 +47,58 @@ class _SignInScreenState extends State<SignInScreen> {
       _passwordError = null;
     });
     return true;
+  }
+
+  Future<void> _register() async {
+    // Kiểm tra form và mật khẩu
+    if (!_formKey.currentState!.validate() || !_validatePasswords()) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final result = await _authService.signUp(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
+
+      if (result['success']) {
+        // Đăng ký thành công
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? "Đăng ký thành công"),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Chuyển đến màn hình đăng nhập
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => LoginScreen()),
+          );
+        }
+      } else {
+        // Đăng ký thất bại
+        setState(() {
+          _errorMessage = result['message'] ?? "Đăng ký thất bại";
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = "Đã có lỗi xảy ra: $e";
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -259,32 +313,19 @@ class _SignInScreenState extends State<SignInScreen> {
 
                   // Sign Up button
                   ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate() &&
-                          _validatePasswords()) {
-                        // Registration successful, navigate to login or home screen
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Đăng ký thành công")),
-                        );
-
-                        // Navigate to login screen after successful registration
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => LoginScreen()),
-                        );
-                      }
-                    },
+                    onPressed: _isLoading ? null : _register,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10)),
                       minimumSize: const Size(double.infinity, 50),
                     ),
-                    child: Text(
-                      "Đăng ký",
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ),
+                    child: _isLoading
+                        ? CircularProgressIndicator(color: Colors.white)
+                        : Text(
+                            "Đăng ký",
+                            style: TextStyle(color: Colors.white, fontSize: 16),
+                          ),
                   ),
 
                   const SizedBox(height: 20),

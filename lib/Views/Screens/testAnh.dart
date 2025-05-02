@@ -137,8 +137,7 @@ class _CropImageScreenState extends State<CropImageScreen>
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    _imageWidth =
-                        _imageWidth ?? constraints.maxWidth * _imageScale;
+                    _imageWidth = _imageWidth ?? constraints.maxWidth * _imageScale;
                     _imageHeight = _imageHeight ?? _imageWidth;
 
                     _position = Offset(
@@ -146,16 +145,16 @@ class _CropImageScreenState extends State<CropImageScreen>
                       _position.dy.clamp(0, _imageHeight - _cropSize),
                     );
 
+                    final Rect cropRect = Rect.fromLTWH(
+                        _position.dx,
+                        _position.dy,
+                        _cropSize,
+                        _cropSize
+                    );
+
                     return Stack(
                       alignment: Alignment.center,
                       children: [
-                        // The background
-                        Container(
-                          width: constraints.maxWidth,
-                          height: constraints.maxHeight,
-                          color: Colors.black.withOpacity(0.7),
-                        ),
-
                         // The image
                         ClipRRect(
                           borderRadius: BorderRadius.circular(20),
@@ -167,16 +166,17 @@ class _CropImageScreenState extends State<CropImageScreen>
                           ),
                         ),
 
-                        // The overlay to dim areas outside the crop
+                        // The overlay with cutout
                         CustomPaint(
                           size: Size(_imageWidth, _imageHeight),
                           painter: CropOverlayPainter(
-                            cropRect: Rect.fromLTWH(_position.dx, _position.dy,
-                                _cropSize, _cropSize),
+                            cropRect: cropRect,
+                            borderColor: primaryColor,
+                            isHighlighted: _isDragging,
                           ),
                         ),
 
-                        // The crop frame
+                        // Invisible gesture detector for dragging
                         Positioned(
                           left: _position.dx,
                           top: _position.dy,
@@ -204,93 +204,7 @@ class _CropImageScreenState extends State<CropImageScreen>
                             child: Container(
                               width: _cropSize,
                               height: _cropSize,
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: primaryColor,
-                                  width: 2,
-                                ),
-                                borderRadius: BorderRadius.circular(4),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: _isDragging
-                                        ? primaryColor.withOpacity(0.5)
-                                        : Colors.transparent,
-                                    blurRadius: 8,
-                                  ),
-                                ],
-                              ),
-                              child: Stack(
-                                children: [
-                                  // Corner markers
-                                  ...List.generate(4, (index) {
-                                    final isTop = index < 2;
-                                    final isLeft = index.isEven;
-
-                                    return Positioned(
-                                      top: isTop ? 0 : null,
-                                      bottom: !isTop ? 0 : null,
-                                      left: isLeft ? 0 : null,
-                                      right: !isLeft ? 0 : null,
-                                      child: Container(
-                                        width: 20,
-                                        height: 20,
-                                        decoration: BoxDecoration(
-                                          border: Border(
-                                            top: isTop
-                                                ? BorderSide(
-                                                    color: primaryColor,
-                                                    width: 4)
-                                                : BorderSide.none,
-                                            bottom: !isTop
-                                                ? BorderSide(
-                                                    color: primaryColor,
-                                                    width: 4)
-                                                : BorderSide.none,
-                                            left: isLeft
-                                                ? BorderSide(
-                                                    color: primaryColor,
-                                                    width: 4)
-                                                : BorderSide.none,
-                                            right: !isLeft
-                                                ? BorderSide(
-                                                    color: primaryColor,
-                                                    width: 4)
-                                                : BorderSide.none,
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  }),
-
-                                  // Guide lines
-                                  Opacity(
-                                    opacity: 0.5,
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                        Container(
-                                            height: 1, color: Colors.white),
-                                        Container(
-                                            height: 1, color: Colors.white),
-                                      ],
-                                    ),
-                                  ),
-                                  Opacity(
-                                    opacity: 0.5,
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                        Container(
-                                            width: 1, color: Colors.white),
-                                        Container(
-                                            width: 1, color: Colors.white),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
+                              color: Colors.transparent,
                             ),
                           ),
                         ),
@@ -380,32 +294,127 @@ class _CropImageScreenState extends State<CropImageScreen>
   }
 }
 
-// Custom painter to create the dimmed overlay outside crop area
 class CropOverlayPainter extends CustomPainter {
   final Rect cropRect;
+  final Color borderColor;
+  final bool isHighlighted;
 
-  CropOverlayPainter({required this.cropRect});
+  CropOverlayPainter({
+    required this.cropRect,
+    this.borderColor = Colors.green,
+    this.isHighlighted = false,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = Colors.black.withOpacity(0.5)
-      ..style = PaintingStyle.fill
-      ..blendMode = BlendMode.srcOver;
+    // Draw border
+    final borderPaint = Paint()
+      ..color = borderColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
 
-    // Draw full size rect with semi-transparent black
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint);
+    if (isHighlighted) {
+      canvas.drawRect(
+        cropRect.inflate(2),
+        Paint()
+          ..color = borderColor.withOpacity(0.5)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 4,
+      );
+    }
 
-    // Then cut out the crop rect using BlendMode.clear
-    final clearPaint = Paint()
-      ..color = Colors.transparent
-      ..blendMode = BlendMode.clear;
+    canvas.drawRect(cropRect, borderPaint);
 
-    canvas.drawRect(cropRect, clearPaint);
+    // Draw corner markers
+    final cornerPaint = Paint()
+      ..color = borderColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4;
+
+    final double cornerSize = 20;
+
+    // Top-left corner
+    canvas.drawLine(
+        cropRect.topLeft,
+        cropRect.topLeft.translate(cornerSize, 0),
+        cornerPaint
+    );
+    canvas.drawLine(
+        cropRect.topLeft,
+        cropRect.topLeft.translate(0, cornerSize),
+        cornerPaint
+    );
+
+    // Top-right corner
+    canvas.drawLine(
+        cropRect.topRight,
+        cropRect.topRight.translate(-cornerSize, 0),
+        cornerPaint
+    );
+    canvas.drawLine(
+        cropRect.topRight,
+        cropRect.topRight.translate(0, cornerSize),
+        cornerPaint
+    );
+
+    // Bottom-left corner
+    canvas.drawLine(
+        cropRect.bottomLeft,
+        cropRect.bottomLeft.translate(cornerSize, 0),
+        cornerPaint
+    );
+    canvas.drawLine(
+        cropRect.bottomLeft,
+        cropRect.bottomLeft.translate(0, -cornerSize),
+        cornerPaint
+    );
+
+    // Bottom-right corner
+    canvas.drawLine(
+        cropRect.bottomRight,
+        cropRect.bottomRight.translate(-cornerSize, 0),
+        cornerPaint
+    );
+    canvas.drawLine(
+        cropRect.bottomRight,
+        cropRect.bottomRight.translate(0, -cornerSize),
+        cornerPaint
+    );
+
+    // Guide lines
+    final guidesPaint = Paint()
+      ..color = Colors.white.withOpacity(0.5)
+      ..strokeWidth = 1;
+
+    // Horizontal guides
+    canvas.drawLine(
+        Offset(cropRect.left, cropRect.top + cropRect.height / 3),
+        Offset(cropRect.right, cropRect.top + cropRect.height / 3),
+        guidesPaint
+    );
+    canvas.drawLine(
+        Offset(cropRect.left, cropRect.top + cropRect.height * 2 / 3),
+        Offset(cropRect.right, cropRect.top + cropRect.height * 2 / 3),
+        guidesPaint
+    );
+
+    // Vertical guides
+    canvas.drawLine(
+        Offset(cropRect.left + cropRect.width / 3, cropRect.top),
+        Offset(cropRect.left + cropRect.width / 3, cropRect.bottom),
+        guidesPaint
+    );
+    canvas.drawLine(
+        Offset(cropRect.left + cropRect.width * 2 / 3, cropRect.top),
+        Offset(cropRect.left + cropRect.width * 2 / 3, cropRect.bottom),
+        guidesPaint
+    );
   }
 
   @override
   bool shouldRepaint(CropOverlayPainter oldDelegate) {
-    return cropRect != oldDelegate.cropRect;
+    return cropRect != oldDelegate.cropRect ||
+        borderColor != oldDelegate.borderColor ||
+        isHighlighted != oldDelegate.isHighlighted;
   }
 }

@@ -12,9 +12,9 @@ class User {
   // Chuyển JSON thành object
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['_id'], // MongoDB trả về id dưới key "_id"
-      name: json['name'],
-      email: json['email'],
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
     );
   }
 

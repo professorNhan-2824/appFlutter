@@ -13,7 +13,7 @@ class PredictScreen extends StatefulWidget {
 }
 
 class _PredictScreenState extends State<PredictScreen> {
-  static const String _serverUrl = 'http://192.168.1.85:5000/predict';
+  static const String _serverUrl = 'http://192.168.1.101:5000/predict';
   bool _isPredicting = true;
 
   @override

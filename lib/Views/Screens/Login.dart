@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/Views/Screens/BirdDetail.dart';
 import 'package:flutter_app/Views/Screens/HomeScreen.dart';
 import 'package:flutter_app/Views/Screens/SignIn.dart';
+import '../../Services/AuthService.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -9,15 +10,58 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
+  bool _isLoading = false;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _authService = AuthService();
+  String? _errorMessage;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final result = await _authService.login(
+        _emailController.text,
+        _passwordController.text,
+      );
+
+      if (result['success']) {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => BirdRecognitionUI()),
+          );
+        }
+      } else {
+        setState(() {
+          _errorMessage = result['message'] ?? 'Đăng nhập thất bại';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Đã có lỗi xảy ra: $e';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -78,71 +122,89 @@ class _LoginScreenState extends State<LoginScreen> {
                         "Tìm hiểu các loài chim tại Việt Nam"),
                     const SizedBox(height: 15),
                     // Email field
-                    TextField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        labelText: "Email",
-                        hintText: "Nhập email của bạn",
-                        prefixIcon: Icon(Icons.email_outlined),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 15, horizontal: 15),
-                      ),
-                    ),
+                    // Bao toàn bộ phần nhập liệu trong Form
+                    Form(
+                      key: _formKey, // Kết nối với _formKey đã khai báo
+                      child: Column(
+                        children: [
+                          TextFormField(
+                            // Thay TextField bằng TextFormField
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: InputDecoration(
+                              labelText: "Email",
+                              hintText: "Nhập email của bạn",
+                              prefixIcon: Icon(Icons.email_outlined),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                  vertical: 15, horizontal: 15),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Vui lòng nhập email';
+                              }
+                              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+                                  .hasMatch(value)) {
+                                return 'Email không hợp lệ';
+                              }
+                              return null;
+                            },
+                          ),
 
-                    const SizedBox(height: 15),
+                          const SizedBox(height: 15),
 
-                    // Password field
-                    TextField(
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      decoration: InputDecoration(
-                        labelText: "Mật khẩu",
-                        hintText: "Nhập mật khẩu của bạn",
-                        prefixIcon: Icon(Icons.lock_outline),
-                        suffixIcon: IconButton(
-                          icon: Icon(_obscurePassword
-                              ? Icons.visibility_off
-                              : Icons.visibility),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+                          // Password field cũng cần đổi sang TextFormField
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            decoration: InputDecoration(
+                              labelText: "Mật khẩu",
+                              hintText: "Nhập mật khẩu của bạn",
+                              prefixIcon: Icon(Icons.lock_outline),
+                              suffixIcon: IconButton(
+                                icon: Icon(_obscurePassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                  vertical: 15, horizontal: 15),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Vui lòng nhập mật khẩu';
+                              }
+                              return null;
+                            },
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 15),
                     ElevatedButton(
-                      onPressed: () {
-                        // Add your login logic here
-                        if (_emailController.text.isNotEmpty &&
-                            _passwordController.text.isNotEmpty) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => BirdRecognitionUI()),
-                          );
-                        }
-                      },
+                      onPressed: _isLoading ? null : _login,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10)),
                         minimumSize: const Size(double.infinity, 50),
                       ),
-                      child: Text(
-                        "Đăng nhập",
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
+                      child: _isLoading
+                          ? CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                              "Đăng nhập",
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 16),
+                            ),
                     ),
                     const SizedBox(height: 15),
                     Row(

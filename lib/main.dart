@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: BirdRecognitionUI(), // Gọi màn hình đăng nhập
+      home: LoginScreen(), // Gọi màn hình đăng nhập
     );
   }
 }
