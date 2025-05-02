@@ -273,7 +273,7 @@ class _BirdRecognitionUIState extends State<BirdRecognitionUI>
                             _buildFeatureCard(
                               context,
                               "Tìm kiếm",
-                              "Tìm thông tin các loài chim",
+                              "Tìm thông tin về chim",
                               Icons.search,
                               Color(0xFFDA4167),
                               Color(0xFFFFD1DC),
@@ -319,7 +319,7 @@ class _BirdRecognitionUIState extends State<BirdRecognitionUI>
                             _buildFeatureCard(
                               context,
                               "Chia Sẻ",
-                              "Chia sẻ để nhiều người biết đến",
+                              "Chia sẻ ứng dụng",
                               Icons.share,
                               Color(0xFFFF8F00),
                               Color(0xFFFFE0B2),
@@ -350,7 +350,7 @@ class _BirdRecognitionUIState extends State<BirdRecognitionUI>
             MaterialPageRoute(builder: (context) => ImageUploadScreen()),
           );
         },
-        backgroundColor: Color(0xFF0A2463),
+        backgroundColor:  const Color.fromRGBO(80, 199, 143, 1),
         elevation: 8,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Container(
@@ -360,12 +360,12 @@ class _BirdRecognitionUIState extends State<BirdRecognitionUI>
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF1E3A8A), Color(0xFF0A2463)],
+              colors: [ const Color.fromRGBO(80, 199, 143, 1), Color(0xFF0A2463)],
             ),
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Color(0xFF1E3A8A).withOpacity(0.3),
+                color:  const Color.fromRGBO(80, 199, 143, 1).withOpacity(0.3),
                 blurRadius: 12,
                 offset: Offset(0, 4),
               ),

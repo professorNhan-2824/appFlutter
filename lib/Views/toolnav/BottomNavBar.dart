@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/Views/Screens/HomeScreen.dart';
+import 'package:flutter_app/Views/Screens/MyAccount.dart';
 import 'package:flutter_app/Views/Screens/image_upload_screen.dart';
 
-// Thêm các màn hình khác nếu cần như SettingsScreen
-
 class BottomNavBar extends StatefulWidget {
+  const BottomNavBar({Key? key}) : super(key: key);
+
   @override
   State<BottomNavBar> createState() => _BottomNavBarState();
 }
@@ -12,39 +13,42 @@ class BottomNavBar extends StatefulWidget {
 class _BottomNavBarState extends State<BottomNavBar> {
   int _currentIndex = 0;
 
-  void _onTabTapped(int index) {
+  void _onItemTapped(int index) {
+    if (_currentIndex == index) return; // Không làm gì nếu nhấn tab hiện tại
+    
     setState(() {
       _currentIndex = index;
     });
 
+    // Sử dụng pushReplacement để thay thế màn hình hiện tại trong stack
+    Widget screen;
     switch (index) {
       case 0:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => BirdRecognitionUI()),
-        );
+        screen = BirdRecognitionUI();
         break;
       case 1:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => ImageUploadScreen()),
-        );
-
+        screen = ImageUploadScreen();
         break;
       case 2:
-        // Ví dụ: Mở màn hình Cài đặt (nếu có)
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   SnackBar(content: Text("Mở trang Cài đặt.")),
-        // );
+        screen = MyAccount();
         break;
+      default:
+        screen = BirdRecognitionUI();
     }
+
+    // Sử dụng pushAndRemoveUntil để xóa toàn bộ stack điều hướng và thêm màn hình mới
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => screen),
+      (route) => false, // Xóa tất cả các route trước đó
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
       currentIndex: _currentIndex,
-      onTap: _onTabTapped,
+      onTap: _onItemTapped,
       backgroundColor: Colors.white,
       selectedItemColor: Colors.blueAccent,
       unselectedItemColor: Colors.grey,
@@ -59,8 +63,8 @@ class _BottomNavBarState extends State<BottomNavBar> {
           label: "Chụp ảnh",
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.settings),
-          label: "Cài đặt",
+          icon: Icon(Icons.person),
+          label: "Tài khoản",
         ),
       ],
     );

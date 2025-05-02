@@ -21,19 +21,33 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
   List<Map<String, String>> _conversationHistory = [];
   final TextEditingController _customQueryController = TextEditingController();
   bool _isLoadingResponse = false;
+  bool _isPickingImage = false;
+
+  // Color scheme
+  // Color scheme
+  final Color primaryColor = const Color.fromRGBO(80, 199, 143, 1); // Thay đổi thành rgb(80, 199, 143)
+  final Color secondaryColor = const Color.fromRGBO(80, 199, 143, 1); // Thay đổi thành rgb(80, 199, 143)
+  final Color backgroundColor = const Color.fromRGBO(225, 240, 239, 1); // Thay đổi thành rgb(225, 240, 239)
+  final Color cardColor = Colors.white;
+  final Color textColor = const Color(0xFF263238);
+  final Color subtextColor = const Color(0xFF607D8B);
+  final Color predictButtonColor = const Color.fromRGBO(80, 199, 193, 1); // Màu mới cho nút dự đoán
 
   Future<void> _pickImage(ImageSource source) async {
+    setState(() {
+      _isPickingImage = true;
+    });
+    
     final picker = ImagePicker();
     try {
       final pickedFile = await picker.pickImage(
         source: source,
-        maxWidth: kIsWeb ? null : 1080, // Tăng maxWidth để giữ chất lượng
+        maxWidth: kIsWeb ? null : 1080,
         maxHeight: kIsWeb ? null : 1080,
       );
       if (pickedFile != null) {
         final imageBytes = await pickedFile.readAsBytes();
         if (source == ImageSource.camera) {
-          // Khi chụp ảnh từ camera, chuyển đến màn hình cắt ảnh
           await Navigator.push(
             context,
             MaterialPageRoute(
@@ -51,7 +65,6 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
             ),
           );
         } else {
-          // Khi chọn ảnh từ thư viện, lưu trực tiếp
           setState(() {
             _imageBytes = imageBytes;
             _result = null;
@@ -61,21 +74,40 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Không có ảnh được chọn')),
+          SnackBar(
+            content: const Text('Không có ảnh được chọn'),
+            backgroundColor: Colors.red[400],
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
         );
       }
     } catch (e) {
       print('❌ Lỗi khi chọn ảnh: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi khi chọn ảnh: $e')),
+        SnackBar(
+          content: Text('Lỗi khi chọn ảnh: $e'),
+          backgroundColor: Colors.red[400],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
       );
+    } finally {
+      setState(() {
+        _isPickingImage = false;
+      });
     }
   }
 
   Future<void> _navigateToPredict() async {
     if (_imageBytes == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng chọn ảnh trước')),
+        SnackBar(
+          content: const Text('Vui lòng chọn ảnh trước'),
+          backgroundColor: Colors.orange[400],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
       );
       return;
     }
@@ -93,6 +125,16 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
         _confidence = result['confidence'] ?? 0.0;
         _conversationHistory = [];
       });
+      
+      // Hiển thị toast thông báo thành công
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Nhận diện thành công!'),
+          backgroundColor: secondaryColor,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
     }
   }
 
@@ -123,7 +165,12 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
   Future<void> _askNewQuestion() async {
     if (_customQueryController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập câu hỏi')),
+        SnackBar(
+          content: const Text('Vui lòng nhập câu hỏi'),
+          backgroundColor: Colors.orange[400],
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
       );
       return;
     }
@@ -186,182 +233,416 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
         title: const Text("Nhận diện chim"),
         centerTitle: true,
+        backgroundColor: primaryColor,
+        elevation: 0,
+        foregroundColor: textColor,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(20),
+          ),
+        ),
       ),
       body: Column(
         children: [
           Expanded(
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 500),
+                constraints: const BoxConstraints(maxWidth: 600),
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(20.0),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      if (_imageBytes != null)
-                        Image.memory(
-                          _imageBytes!,
-                          height: 224,
-                          width: 224,
-                          fit: BoxFit.cover,
-                        )
-                      else
-                        Container(
-                          height: 224,
-                          width: 224,
-                          color: Colors.grey[300],
-                          child: const Center(child: Text('Chưa có ảnh')),
+                      // Image Display Card
+                      Card(
+                        elevation: 5,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                      const SizedBox(height: 10),
-                      Text(
-                        _result != null
-                            ? 'Loài: $_result\nĐộ tin cậy: ${_confidence!.toStringAsFixed(2)}%'
-                            : 'Chưa có kết quả',
-                        style: const TextStyle(fontSize: 18),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Nút "Biết thêm về loài này" chỉ hiển thị sau khi nhận diện
-                      if (_result != null && _result != 'Không xác định')
-                        ElevatedButton(
-                          onPressed: _fetchBirdInfo,
-                          child: const Text('Biết thêm về loài này'),
-                        ),
-
-                      const SizedBox(height: 20),
-
-                      // Hiển thị lịch sử hội thoại
-                      if (_conversationHistory.isNotEmpty)
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          padding: const EdgeInsets.all(10),
+                        color: cardColor,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                "Thông tin về loài chim $_result:",
-                                style: const TextStyle(
+                              const Text(
+                                "Hình ảnh chim",
+                                style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const Divider(),
-                              ...List.generate(
-                                _conversationHistory.length,
-                                (index) {
-                                  final entry = _conversationHistory[index];
-                                  return Padding(
-                                    padding: const EdgeInsets.only(bottom: 10),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Hỏi: ${entry['query']}",
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black87,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 5),
-                                        Text(
-                                          "Trả lời: ${entry['response']}",
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.black54,
-                                          ),
-                                          textAlign: TextAlign.justify,
-                                        ),
-                                        if (index <
-                                            _conversationHistory.length - 1)
-                                          const Divider(),
-                                      ],
+                              const SizedBox(height: 16),
+                              
+                              // Image Container with border and shadow
+                              Container(
+                                height: 250,
+                                width: 250,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(15),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      spreadRadius: 1,
+                                      blurRadius: 5,
+                                      offset: const Offset(0, 3),
                                     ),
-                                  );
-                                },
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(15),
+                                  child: _imageBytes != null
+                                    ? Image.memory(
+                                        _imageBytes!,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Container(
+                                        color: Colors.grey[300],
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.photo_camera_outlined,
+                                              size: 50,
+                                              color: subtextColor,
+                                            ),
+                                            const SizedBox(height: 10),
+                                            Text(
+                                              'Chưa có ảnh',
+                                              style: TextStyle(
+                                                color: subtextColor,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                ),
                               ),
+                              
+                              const SizedBox(height: 16),
+                              
+                              // Result Section
+                              if (_result != null)
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: _result != 'Không xác định' 
+                                        ? Colors.green.withOpacity(0.1) 
+                                        : Colors.orange.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: _result != 'Không xác định' 
+                                          ? Colors.green.withOpacity(0.5) 
+                                          : Colors.orange.withOpacity(0.5),
+                                    ),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.check_circle,
+                                            color: _result != 'Không xác định' 
+                                                ? Colors.green 
+                                                : Colors.orange,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'Kết quả nhận diện',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: textColor,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Loài: $_result',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: textColor,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      if (_confidence != null)
+                                        Padding(
+                                          padding: const EdgeInsets.only(top: 4),
+                                          child: Text(
+                                            'Độ tin cậy: ${_confidence!.toStringAsFixed(2)}%',
+                                            style: TextStyle(
+                                              color: subtextColor,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
                             ],
+                          ),
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 20),
+                      
+                      // Action Buttons
+                      if (_result != null && _result != 'Không xác định')
+                        Container(
+                          width: double.infinity,
+                          constraints: const BoxConstraints(maxWidth: 400),
+                          child: ElevatedButton.icon(
+                            onPressed: _fetchBirdInfo,
+                            icon: const Icon(Icons.info_outline),
+                            label: const Text('Biết thêm về loài này'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: primaryColor,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 15),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 3,
+                            ),
+                          ),
+                        ),
+
+                      const SizedBox(height: 30),
+
+                      // Conversation History
+                      if (_conversationHistory.isNotEmpty)
+                        Card(
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          color: cardColor,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(Icons.info, color: primaryColor),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        "Thông tin về loài chim $_result",
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: textColor,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const Divider(thickness: 1.5),
+                                ...List.generate(
+                                  _conversationHistory.length,
+                                  (index) {
+                                    final entry = _conversationHistory[index];
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 16),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          // Question
+                                          Container(
+                                            padding: const EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                              color: primaryColor.withOpacity(0.1),
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: Row(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Icon(
+                                                  Icons.person,
+                                                  color: primaryColor,
+                                                  size: 20,
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Expanded(
+                                                  child: Text(
+                                                    entry['query']!,
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.w600,
+                                                      color: textColor,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          
+                                          // Response
+                                          Padding(
+                                            padding: const EdgeInsets.only(left: 16, top: 8, right: 8),
+                                            child: Container(
+                                              padding: const EdgeInsets.all(12),
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey.withOpacity(0.1),
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: Row(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Icon(
+                                                    Icons.smart_toy_outlined,
+                                                    color: secondaryColor,
+                                                    size: 20,
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Expanded(
+                                                    child: Text(
+                                                      entry['response']!,
+                                                      style: TextStyle(
+                                                        color: textColor,
+                                                      ),
+                                                      textAlign: TextAlign.justify,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                          
+                                          if (index < _conversationHistory.length - 1)
+                                            const Padding(
+                                              padding: EdgeInsets.symmetric(vertical: 8),
+                                              child: Divider(),
+                                            ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
                         ),
 
                       const SizedBox(height: 20),
 
-                      // Giao diện nhập câu hỏi mới
+                      // Q&A Input
                       if (_conversationHistory.isNotEmpty)
-                        Column(
-                          children: [
-                            Text(
-                              "Đặt câu hỏi về loài chim",
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-
-                            // Các câu hỏi có sẵn
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              alignment: WrapAlignment.center,
-                              children: predefinedQueries
-                                  .map((query) => ElevatedButton(
-                                        onPressed: _isLoadingResponse
-                                            ? null
-                                            : () => _usePresetQuestion(query),
-                                        style: ElevatedButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 12, vertical: 6),
-                                        ),
-                                        child: Text(
-                                          query,
-                                          style: const TextStyle(fontSize: 12),
-                                        ),
-                                      ))
-                                  .toList(),
-                            ),
-
-                            const SizedBox(height: 15),
-
-                            // Ô nhập câu hỏi
-                            Row(
+                        Card(
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          color: cardColor,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
                               children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: _customQueryController,
-                                    decoration: const InputDecoration(
-                                      hintText: "Nhập câu hỏi của bạn",
-                                      border: OutlineInputBorder(),
-                                      contentPadding: EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 8),
+                                Row(
+                                  children: [
+                                    Icon(Icons.question_answer, color: primaryColor),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      "Đặt câu hỏi về loài chim",
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: textColor,
+                                      ),
                                     ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                
+                                // Preset Questions
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  alignment: WrapAlignment.center,
+                                  children: predefinedQueries
+                                      .map((query) => ElevatedButton(
+                                            onPressed: _isLoadingResponse
+                                                ? null
+                                                : () => _usePresetQuestion(query),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: primaryColor.withOpacity(0.1),
+                                              foregroundColor: primaryColor,
+                                              elevation: 0,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(20),
+                                                side: BorderSide(color: primaryColor.withOpacity(0.3)),
+                                              ),
+                                              padding: const EdgeInsets.symmetric(
+                                                  horizontal: 12, vertical: 10),
+                                            ),
+                                            child: Text(
+                                              query,
+                                              style: const TextStyle(fontSize: 12),
+                                            ),
+                                          ))
+                                      .toList(),
+                                ),
+
+                                const SizedBox(height: 20),
+
+                                // Custom Question Input
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextField(
+                                        controller: _customQueryController,
+                                        decoration: InputDecoration(
+                                          hintText: "Nhập câu hỏi của bạn",
+                                          hintStyle: TextStyle(color: subtextColor),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(12),
+                                            borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(12),
+                                            borderSide: BorderSide(color: primaryColor),
+                                          ),
+                                          contentPadding: const EdgeInsets.symmetric(
+                                              horizontal: 16, vertical: 12),
+                                          filled: true,
+                                          fillColor: Colors.grey.withOpacity(0.05),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    ElevatedButton(
+                                      onPressed: _isLoadingResponse
+                                          ? null
+                                          : _askNewQuestion,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: primaryColor,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 12, horizontal: 20),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                      child: Text(_isLoadingResponse ? "Đang xử lý..." : "Hỏi"),
+                                    ),
+                                  ],
+                                ),
+
+                                if (_isLoadingResponse)
+                                  const Padding(
+                                    padding: EdgeInsets.only(top: 20),
+                                    child: LinearProgressIndicator(),
                                   ),
-                                ),
-                                const SizedBox(width: 10),
-                                ElevatedButton(
-                                  onPressed: _isLoadingResponse
-                                      ? null
-                                      : _askNewQuestion,
-                                  child: const Text("Hỏi"),
-                                ),
                               ],
                             ),
-
-                            if (_isLoadingResponse)
-                              const Padding(
-                                padding: EdgeInsets.only(top: 15),
-                                child: CircularProgressIndicator(),
-                              ),
-                          ],
+                          ),
                         ),
                     ],
                   ),
@@ -369,37 +650,98 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
               ),
             ),
           ),
+          
+          // Bottom Action Panel
           Container(
-            padding: const EdgeInsets.all(20.0),
+            width: double.infinity,
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: cardColor,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -5),
+                ),
+              ],
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Image Upload Buttons
                 if (kIsWeb)
                   ElevatedButton.icon(
-                    onPressed: () => _pickImage(ImageSource.gallery),
-                    icon: const Icon(Icons.upload_file),
-                    label: const Text('Tải ảnh lên'),
+                    onPressed: _isPickingImage ? null : () => _pickImage(ImageSource.gallery),
+                    icon: Icon(_isPickingImage ? Icons.hourglass_bottom : Icons.upload_file),
+                    label: Text(_isPickingImage ? 'Đang tải...' : 'Tải ảnh lên'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 2,
+                    ),
                   )
                 else
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      ElevatedButton.icon(
-                        onPressed: () => _pickImage(ImageSource.gallery),
-                        icon: const Icon(Icons.photo),
-                        label: const Text('Chọn ảnh'),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _isPickingImage ? null : () => _pickImage(ImageSource.gallery),
+                          icon: const Icon(Icons.photo_library_outlined),
+                          label: Text(_isPickingImage ? 'Đang tải...' : 'Chọn từ thư viện'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 2,
+                          ),
+                        ),
                       ),
-                      ElevatedButton.icon(
-                        onPressed: () => _pickImage(ImageSource.camera),
-                        icon: const Icon(Icons.camera_alt),
-                        label: const Text('Chụp ảnh'),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _isPickingImage ? null : () => _pickImage(ImageSource.camera),
+                          icon: const Icon(Icons.camera_alt_outlined),
+                          label: Text(_isPickingImage ? 'Đang tải...' : 'Chụp ảnh mới'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: secondaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 2,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                const SizedBox(height: 20),
-                ElevatedButton(
+                
+                const SizedBox(height: 12),
+                
+                // Predict Button
+                ElevatedButton.icon(
                   onPressed: _navigateToPredict,
-                  child: const Text('Dự đoán loài chim'),
+                  icon: const Icon(Icons.search),
+                  label: const Text('Dự đoán loài chim'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: predictButtonColor,
+                    foregroundColor: const Color.fromARGB(255, 16, 15, 15),
+                    minimumSize: const Size(double.infinity, 55),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 3,
+                  ),
                 ),
               ],
             ),

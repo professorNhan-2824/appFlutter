@@ -21,6 +21,7 @@ class User {
   // Nếu cần chuyển User thành JSON (ví dụ khi gửi dữ liệu lên server)
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'name': name,
       'email': email,
     };
