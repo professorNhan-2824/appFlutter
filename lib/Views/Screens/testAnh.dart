@@ -415,6 +415,7 @@ class CropOverlayPainter extends CustomPainter {
   bool shouldRepaint(CropOverlayPainter oldDelegate) {
     return cropRect != oldDelegate.cropRect ||
         borderColor != oldDelegate.borderColor ||
+
         isHighlighted != oldDelegate.isHighlighted;
   }
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/Services/AuthService.dart';
 import 'package:flutter_app/Views/Screens/HomeScreen.dart';
 
+import 'Login.dart';
+
 class MyAccount extends StatefulWidget {
   const MyAccount({Key? key}) : super(key: key);
 
@@ -56,8 +58,10 @@ class _MyAccountState extends State<MyAccount> {
 
       if (result['success']) {
         // Chuyển về màn hình đăng nhập sau khi đăng xuất
-        Navigator.of(context)
-            .pushNamedAndRemoveUntil('/login', (route) => false);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginScreen()),
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result['message'] ?? 'Đăng xuất thất bại')),
