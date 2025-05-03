@@ -1,5 +1,6 @@
 // lib/services/auth_service.dart
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../model/user.dart';
@@ -7,7 +8,7 @@ import 'token_manager.dart';
 
 class AuthService {
   // Thay thế bằng URL API của bạn
-  final String baseUrl = 'https://apiflutter-cndd.onrender.com';
+  final String? baseUrl = dotenv.env['API_BASE_URL'];
   final TokenManager _tokenManager = TokenManager();
 
   // Key để lưu thông tin user
@@ -123,7 +124,6 @@ class AuthService {
   }
 
 
-  // Lưu thông tin người dùng vào SharedPreferences
   Future<void> _saveUserData(User user) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(userKey, jsonEncode(user.toJson()));

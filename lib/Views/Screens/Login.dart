@@ -186,6 +186,26 @@ class _LoginScreenState extends State<LoginScreen> {
                               return null;
                             },
                           ),
+                          if (_errorMessage != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 12),
+                              child: Container(
+                                width: double.infinity,
+                                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.red.shade300),
+                                ),
+                                child: Text(
+                                  _errorMessage!,
+                                  style: TextStyle(
+                                    color: Colors.red.shade700,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -266,10 +286,10 @@ class _LoginScreenState extends State<LoginScreen> {
       BuildContext context, IconData icon, String text, Color color) {
     return ElevatedButton.icon(
       onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => BirdRecognitionUI()),
-        );
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => BirdRecognitionUI()),
+        // );
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: color,
