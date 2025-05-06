@@ -3,9 +3,9 @@ import 'package:http/http.dart' as http;
 
 class GoogleGeminiService {
   final String apiKey =
-      "AIzaSyCrtEqcu0usp1KWa7meMwB09-Nj8nKzf48"; // Thay bằng API Key của bạn
+      ""; // Thay bằng API Key của bạn
   final String apiUrl =
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+      "";
 
   Future<String> chatWithGemini(String prompt) async {
     try {
