@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../Services//token_manager.dart';
 
 class ApiClient {
-  final String baseUrl = 'https://apiflutter-cndd.onrender.com';
+  final String baseUrl = '';
   final TokenManager _tokenManager = TokenManager();
 
   // GET request với token authentication
