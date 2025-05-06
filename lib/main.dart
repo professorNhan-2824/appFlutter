@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/Views/Screens/Login.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+Future<void> main() async {
+  // Load environment variables before app starts
+  await dotenv.load(fileName: ".env");
   runApp(MyApp());
 }
 

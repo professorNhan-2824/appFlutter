@@ -18,6 +18,7 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8
     }
+<<<<<<< HEAD
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
@@ -28,6 +29,20 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+=======
+   
+
+    defaultConfig {
+        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        applicationId = "com.example.flutter_app"  
+        // You can update the following values to match your application needs.
+        // For more information, see: https://flutter.dev/to/review-gradle-config.
+        // Override the minSdk version explicitly to 26 instead of using flutter.minSdkVersion
+        minSdk = 26  // Changed from flutter.minSdkVersion to fixed value 26
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName   
+>>>>>>> produc
     }
 
     buildTypes {
@@ -41,4 +56,8 @@ android {
 
 flutter {
     source = "../.."
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> produc
