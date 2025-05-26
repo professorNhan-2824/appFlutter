@@ -18,6 +18,7 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
   Uint8List? _imageBytes;
   String? _result;
   double? _confidence;
+  bool _isLowConfidence = false;
   List<Map<String, String>> _conversationHistory = [];
   final TextEditingController _customQueryController = TextEditingController();
   bool _isLoadingResponse = false;
@@ -25,19 +26,23 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
 
   // Color scheme
   // Color scheme
-  final Color primaryColor = const Color.fromRGBO(80, 199, 143, 1); // Thay đổi thành rgb(80, 199, 143)
-  final Color secondaryColor = const Color.fromRGBO(80, 199, 143, 1); // Thay đổi thành rgb(80, 199, 143)
-  final Color backgroundColor = const Color.fromRGBO(225, 240, 239, 1); // Thay đổi thành rgb(225, 240, 239)
+  final Color primaryColor =
+      const Color.fromRGBO(80, 199, 143, 1); // Thay đổi thành rgb(80, 199, 143)
+  final Color secondaryColor =
+      const Color.fromRGBO(80, 199, 143, 1); // Thay đổi thành rgb(80, 199, 143)
+  final Color backgroundColor = const Color.fromRGBO(
+      225, 240, 239, 1); // Thay đổi thành rgb(225, 240, 239)
   final Color cardColor = Colors.white;
   final Color textColor = const Color(0xFF263238);
   final Color subtextColor = const Color(0xFF607D8B);
-  final Color predictButtonColor = const Color.fromRGBO(80, 199, 193, 1); // Màu mới cho nút dự đoán
+  final Color predictButtonColor =
+      const Color.fromRGBO(80, 199, 193, 1); // Màu mới cho nút dự đoán
 
   Future<void> _pickImage(ImageSource source) async {
     setState(() {
       _isPickingImage = true;
     });
-    
+
     final picker = ImagePicker();
     try {
       final pickedFile = await picker.pickImage(
@@ -78,7 +83,8 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
             content: const Text('Không có ảnh được chọn'),
             backgroundColor: Colors.red[400],
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       }
@@ -89,7 +95,8 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
           content: Text('Lỗi khi chọn ảnh: $e'),
           backgroundColor: Colors.red[400],
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
     } finally {
@@ -106,7 +113,8 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
           content: const Text('Vui lòng chọn ảnh trước'),
           backgroundColor: Colors.orange[400],
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
       return;
@@ -123,16 +131,20 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
       setState(() {
         _result = result['bird'] ?? 'Không xác định';
         _confidence = result['confidence'] ?? 0.0;
+        _isLowConfidence = result['isLowConfidence'] ?? false;
         _conversationHistory = [];
       });
-      
+
       // Hiển thị toast thông báo thành công
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Nhận diện thành công!'),
-          backgroundColor: secondaryColor,
+          content: Text(_isLowConfidence
+              ? 'Không nhận diện được chim!'
+              : 'Nhận diện thành công!'),
+          backgroundColor: _isLowConfidence ? Colors.red : secondaryColor,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
     }
@@ -169,7 +181,8 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
           content: const Text('Vui lòng nhập câu hỏi'),
           backgroundColor: Colors.orange[400],
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
       return;
@@ -277,7 +290,7 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
                                 ),
                               ),
                               const SizedBox(height: 16),
-                              
+
                               // Image Container with border and shadow
                               Container(
                                 height: 250,
@@ -296,49 +309,56 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(15),
                                   child: _imageBytes != null
-                                    ? Image.memory(
-                                        _imageBytes!,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : Container(
-                                        color: Colors.grey[300],
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.photo_camera_outlined,
-                                              size: 50,
-                                              color: subtextColor,
-                                            ),
-                                            const SizedBox(height: 10),
-                                            Text(
-                                              'Chưa có ảnh',
-                                              style: TextStyle(
+                                      ? Image.memory(
+                                          _imageBytes!,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Container(
+                                          color: Colors.grey[300],
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.photo_camera_outlined,
+                                                size: 50,
                                                 color: subtextColor,
-                                                fontWeight: FontWeight.w500,
                                               ),
-                                            ),
-                                          ],
+                                              const SizedBox(height: 10),
+                                              Text(
+                                                'Chưa có ảnh',
+                                                style: TextStyle(
+                                                  color: subtextColor,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
                                 ),
                               ),
-                              
+
                               const SizedBox(height: 16),
-                              
+
                               // Result Section
                               if (_result != null)
                                 Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: _result != 'Không xác định' 
-                                        ? Colors.green.withOpacity(0.1) 
-                                        : Colors.orange.withOpacity(0.1),
+                                    color: _isLowConfidence
+                                        ? Colors.red.withOpacity(
+                                            0.1) // Màu đỏ nhạt cho độ tin cậy thấp
+                                        : (_result != 'Không xác định'
+                                            ? Colors.green.withOpacity(0.1)
+                                            : Colors.orange.withOpacity(0.1)),
                                     borderRadius: BorderRadius.circular(10),
                                     border: Border.all(
-                                      color: _result != 'Không xác định' 
-                                          ? Colors.green.withOpacity(0.5) 
-                                          : Colors.orange.withOpacity(0.5),
+                                      color: _isLowConfidence
+                                          ? Colors.red.withOpacity(
+                                              0.5) // Viền đỏ cho độ tin cậy thấp
+                                          : (_result != 'Không xác định'
+                                              ? Colors.green.withOpacity(0.5)
+                                              : Colors.orange.withOpacity(0.5)),
                                     ),
                                   ),
                                   child: Column(
@@ -347,14 +367,21 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(
-                                            Icons.check_circle,
-                                            color: _result != 'Không xác định' 
-                                                ? Colors.green 
-                                                : Colors.orange,
+                                            _isLowConfidence
+                                                ? Icons
+                                                    .error_outline // Icon khác cho độ tin cậy thấp
+                                                : Icons.check_circle,
+                                            color: _isLowConfidence
+                                                ? Colors.red // Màu đỏ cho icon
+                                                : (_result != 'Không xác định'
+                                                    ? Colors.green
+                                                    : Colors.orange),
                                           ),
                                           const SizedBox(width: 8),
                                           Text(
-                                            'Kết quả nhận diện',
+                                            _isLowConfidence
+                                                ? 'Không nhận diện được' // Text khác cho độ tin cậy thấp
+                                                : 'Kết quả nhận diện',
                                             style: TextStyle(
                                               fontWeight: FontWeight.bold,
                                               color: textColor,
@@ -368,17 +395,24 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
                                         style: TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
-                                          color: textColor,
+                                          color: _isLowConfidence
+                                              ? Colors
+                                                  .red // Màu đỏ cho text kết quả
+                                              : textColor,
                                         ),
                                         textAlign: TextAlign.center,
                                       ),
                                       if (_confidence != null)
                                         Padding(
-                                          padding: const EdgeInsets.only(top: 4),
+                                          padding:
+                                              const EdgeInsets.only(top: 4),
                                           child: Text(
                                             'Độ tin cậy: ${_confidence!.toStringAsFixed(2)}%',
                                             style: TextStyle(
-                                              color: subtextColor,
+                                              color: _isLowConfidence
+                                                  ? Colors
+                                                      .red // Màu đỏ cho confidence
+                                                  : subtextColor,
                                               fontWeight: FontWeight.w500,
                                             ),
                                           ),
@@ -390,9 +424,9 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
                           ),
                         ),
                       ),
-                      
+
                       const SizedBox(height: 20),
-                      
+
                       // Action Buttons
                       if (_result != null && _result != 'Không xác định')
                         Container(
@@ -414,6 +448,41 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
                           ),
                         ),
 
+                      if (_isLowConfidence)
+                        Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(top: 16),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                                color: Colors.amber.withOpacity(0.5)),
+                          ),
+                          child: Column(
+                            children: [
+                              Icon(Icons.lightbulb_outline,
+                                  color: Colors.amber[700]),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Gợi ý cải thiện',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.amber[700],
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Hãy thử chụp ảnh rõ hơn, góc nhìn tốt hơn hoặc ánh sáng tự nhiên để có kết quả chính xác hơn.',
+                                style: TextStyle(
+                                  color: Colors.amber[700],
+                                  fontSize: 12,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
                       const SizedBox(height: 30),
 
                       // Conversation History
@@ -451,19 +520,24 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
                                   (index) {
                                     final entry = _conversationHistory[index];
                                     return Padding(
-                                      padding: const EdgeInsets.only(bottom: 16),
+                                      padding:
+                                          const EdgeInsets.only(bottom: 16),
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           // Question
                                           Container(
                                             padding: const EdgeInsets.all(12),
                                             decoration: BoxDecoration(
-                                              color: primaryColor.withOpacity(0.1),
-                                              borderRadius: BorderRadius.circular(12),
+                                              color:
+                                                  primaryColor.withOpacity(0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
                                             ),
                                             child: Row(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Icon(
                                                   Icons.person,
@@ -475,7 +549,8 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
                                                   child: Text(
                                                     entry['query']!,
                                                     style: TextStyle(
-                                                      fontWeight: FontWeight.w600,
+                                                      fontWeight:
+                                                          FontWeight.w600,
                                                       color: textColor,
                                                     ),
                                                   ),
@@ -483,18 +558,22 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
                                               ],
                                             ),
                                           ),
-                                          
+
                                           // Response
                                           Padding(
-                                            padding: const EdgeInsets.only(left: 16, top: 8, right: 8),
+                                            padding: const EdgeInsets.only(
+                                                left: 16, top: 8, right: 8),
                                             child: Container(
                                               padding: const EdgeInsets.all(12),
                                               decoration: BoxDecoration(
-                                                color: Colors.grey.withOpacity(0.1),
-                                                borderRadius: BorderRadius.circular(12),
+                                                color: Colors.grey
+                                                    .withOpacity(0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
                                               ),
                                               child: Row(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
                                                   Icon(
                                                     Icons.smart_toy_outlined,
@@ -508,17 +587,20 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
                                                       style: TextStyle(
                                                         color: textColor,
                                                       ),
-                                                      textAlign: TextAlign.justify,
+                                                      textAlign:
+                                                          TextAlign.justify,
                                                     ),
                                                   ),
                                                 ],
                                               ),
                                             ),
                                           ),
-                                          
-                                          if (index < _conversationHistory.length - 1)
+
+                                          if (index <
+                                              _conversationHistory.length - 1)
                                             const Padding(
-                                              padding: EdgeInsets.symmetric(vertical: 8),
+                                              padding: EdgeInsets.symmetric(
+                                                  vertical: 8),
                                               child: Divider(),
                                             ),
                                         ],
@@ -547,7 +629,8 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
                               children: [
                                 Row(
                                   children: [
-                                    Icon(Icons.question_answer, color: primaryColor),
+                                    Icon(Icons.question_answer,
+                                        color: primaryColor),
                                     const SizedBox(width: 8),
                                     Text(
                                       "Đặt câu hỏi về loài chim",
@@ -560,7 +643,7 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
                                   ],
                                 ),
                                 const SizedBox(height: 16),
-                                
+
                                 // Preset Questions
                                 Wrap(
                                   spacing: 8,
@@ -570,21 +653,29 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
                                       .map((query) => ElevatedButton(
                                             onPressed: _isLoadingResponse
                                                 ? null
-                                                : () => _usePresetQuestion(query),
+                                                : () =>
+                                                    _usePresetQuestion(query),
                                             style: ElevatedButton.styleFrom(
-                                              backgroundColor: primaryColor.withOpacity(0.1),
+                                              backgroundColor:
+                                                  primaryColor.withOpacity(0.1),
                                               foregroundColor: primaryColor,
                                               elevation: 0,
                                               shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(20),
-                                                side: BorderSide(color: primaryColor.withOpacity(0.3)),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                side: BorderSide(
+                                                    color: primaryColor
+                                                        .withOpacity(0.3)),
                                               ),
-                                              padding: const EdgeInsets.symmetric(
-                                                  horizontal: 12, vertical: 10),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 12,
+                                                      vertical: 10),
                                             ),
                                             child: Text(
                                               query,
-                                              style: const TextStyle(fontSize: 12),
+                                              style:
+                                                  const TextStyle(fontSize: 12),
                                             ),
                                           ))
                                       .toList(),
@@ -600,19 +691,27 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
                                         controller: _customQueryController,
                                         decoration: InputDecoration(
                                           hintText: "Nhập câu hỏi của bạn",
-                                          hintStyle: TextStyle(color: subtextColor),
+                                          hintStyle:
+                                              TextStyle(color: subtextColor),
                                           border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(12),
-                                            borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            borderSide: BorderSide(
+                                                color: Colors.grey
+                                                    .withOpacity(0.3)),
                                           ),
                                           focusedBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(12),
-                                            borderSide: BorderSide(color: primaryColor),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            borderSide:
+                                                BorderSide(color: primaryColor),
                                           ),
-                                          contentPadding: const EdgeInsets.symmetric(
-                                              horizontal: 16, vertical: 12),
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                  horizontal: 16, vertical: 12),
                                           filled: true,
-                                          fillColor: Colors.grey.withOpacity(0.05),
+                                          fillColor:
+                                              Colors.grey.withOpacity(0.05),
                                         ),
                                       ),
                                     ),
@@ -627,10 +726,13 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
                                         padding: const EdgeInsets.symmetric(
                                             vertical: 12, horizontal: 20),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                       ),
-                                      child: Text(_isLoadingResponse ? "Đang xử lý..." : "Hỏi"),
+                                      child: Text(_isLoadingResponse
+                                          ? "Đang xử lý..."
+                                          : "Hỏi"),
                                     ),
                                   ],
                                 ),
@@ -650,7 +752,7 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
               ),
             ),
           ),
-          
+
           // Bottom Action Panel
           Container(
             width: double.infinity,
@@ -674,9 +776,14 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
                 // Image Upload Buttons
                 if (kIsWeb)
                   ElevatedButton.icon(
-                    onPressed: _isPickingImage ? null : () => _pickImage(ImageSource.gallery),
-                    icon: Icon(_isPickingImage ? Icons.hourglass_bottom : Icons.upload_file),
-                    label: Text(_isPickingImage ? 'Đang tải...' : 'Tải ảnh lên'),
+                    onPressed: _isPickingImage
+                        ? null
+                        : () => _pickImage(ImageSource.gallery),
+                    icon: Icon(_isPickingImage
+                        ? Icons.hourglass_bottom
+                        : Icons.upload_file),
+                    label:
+                        Text(_isPickingImage ? 'Đang tải...' : 'Tải ảnh lên'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
                       foregroundColor: Colors.white,
@@ -692,9 +799,13 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
                     children: [
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: _isPickingImage ? null : () => _pickImage(ImageSource.gallery),
+                          onPressed: _isPickingImage
+                              ? null
+                              : () => _pickImage(ImageSource.gallery),
                           icon: const Icon(Icons.photo_library_outlined),
-                          label: Text(_isPickingImage ? 'Đang tải...' : 'Chọn từ thư viện'),
+                          label: Text(_isPickingImage
+                              ? 'Đang tải...'
+                              : 'Chọn từ thư viện'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: primaryColor,
                             foregroundColor: Colors.white,
@@ -709,9 +820,12 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: _isPickingImage ? null : () => _pickImage(ImageSource.camera),
+                          onPressed: _isPickingImage
+                              ? null
+                              : () => _pickImage(ImageSource.camera),
                           icon: const Icon(Icons.camera_alt_outlined),
-                          label: Text(_isPickingImage ? 'Đang tải...' : 'Chụp ảnh mới'),
+                          label: Text(
+                              _isPickingImage ? 'Đang tải...' : 'Chụp ảnh mới'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: secondaryColor,
                             foregroundColor: Colors.white,
@@ -725,9 +839,9 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
                       ),
                     ],
                   ),
-                
+
                 const SizedBox(height: 12),
-                
+
                 // Predict Button
                 ElevatedButton.icon(
                   onPressed: _navigateToPredict,

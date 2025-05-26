@@ -7,7 +7,6 @@ import '../model/user.dart';
 import 'token_manager.dart';
 
 class AuthService {
-  // Thay thế bằng URL API của bạn
   final String? baseUrl = dotenv.env['API_BASE_URL'];
   final TokenManager _tokenManager = TokenManager();
 

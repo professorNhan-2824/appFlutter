@@ -13,7 +13,7 @@ class PredictScreen extends StatefulWidget {
 }
 
 class _PredictScreenState extends State<PredictScreen> {
-  static const String _serverUrl = 'http://192.168.1.101:5000/predict';
+  static const String _serverUrl = 'http://192.168.1.10:5000/predict';
   bool _isPredicting = true;
 
   @override
@@ -23,6 +23,7 @@ class _PredictScreenState extends State<PredictScreen> {
     _predict();
   }
 
+  // Gửi ảnh lên server
   // Gửi ảnh lên server
   Future<void> _predict() async {
     try {
@@ -45,11 +46,22 @@ class _PredictScreenState extends State<PredictScreen> {
         double confidence =
             double.tryParse(confidenceStr.replaceAll('%', '')) ?? 0.0;
 
-        // Trả kết quả về trang trước
-        Navigator.pop(context, {
-          'bird': result,
-          'confidence': confidence,
-        });
+        // Kiểm tra nếu confidence dưới 60%
+        if (confidence < 60.0) {
+          // Trả kết quả với trạng thái không nhận diện được
+          Navigator.pop(context, {
+            'bird': 'Không nhận diện được',
+            'confidence': confidence,
+            'isLowConfidence': true, // Flag để biết độ tin cậy thấp
+          });
+        } else {
+          // Trả kết quả bình thường
+          Navigator.pop(context, {
+            'bird': result,
+            'confidence': confidence,
+            'isLowConfidence': false,
+          });
+        }
       } else {
         var errorResponse = jsonDecode(responseBody);
         throw Exception(
